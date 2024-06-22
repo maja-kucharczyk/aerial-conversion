@@ -16,6 +16,7 @@ import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
+from shapely import multipolygons
 from tqdm import tqdm
 
 from aerial_conversion.coco import (
@@ -133,7 +134,8 @@ def merge_class_polygons_shapely(tiles_df_zone_groups, crs):
         # Merge overlapping polygons in each class/zone
         zone_name = tiles_df_zone["zone_name"][0]
         zone_code = tiles_df_zone["zone_code"][0]
-        multipolygon = unary_union(tiles_df_zone["geometry"])
+        multipolygon = multipolygons(tiles_df_zone["geometry"])
+        #multipolygon = unary_union(tiles_df_zone["geometry"])
         # polygons = list(multipolygon.geoms)
 
         if index == 0:
@@ -146,6 +148,7 @@ def merge_class_polygons_shapely(tiles_df_zone_groups, crs):
             polygons_df_tmp["zone_name"] = zone_name
             polygons_df = pd.concat([polygons_df, polygons_df_tmp], ignore_index=True)
 
+    polygons_df['geometry'] = polygons_df.geometry.buffer(0)
     polygons_df = polygons_df.explode("geometry").reset_index(drop=True)
 
     # for poly in tqdm(polygons[1:]):
